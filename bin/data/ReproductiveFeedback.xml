@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <group>
-	<Mesh_vertex_radius>4</Mesh_vertex_radius>
+	<Mesh_vertex_radius>4.5</Mesh_vertex_radius>
 	<Mesh_columns>5</Mesh_columns>
 	<Mesh_rows>5</Mesh_rows>
 	<Vertex_density>0.3</Vertex_density>

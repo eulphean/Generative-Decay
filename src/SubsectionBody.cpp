@@ -3,7 +3,16 @@
 void SubsectionBody::setup(ofxBox2d &box2d, glm::vec2 meshOrigin, SoftBodyProperties softBodyProperties) {
   setupMeshPlane(meshOrigin, softBodyProperties); // Create a mesh.
   createBox2DSprings(box2d, softBodyProperties); // Create box2d structure.
-  addForce(); 
+  
+  // Set the 0th vertex as static
+  this->vertices[0]->body->SetType(b2_staticBody);
+  
+  // Pick a random vertex and set it as static
+  auto rIdx = ofRandom(this->vertices.size());
+  this->vertices[rIdx]->body->SetType(b2_staticBody);
+  
+  
+//  addForce(); 
 }
 
 void SubsectionBody::update(ofxBox2d &box2d) {
