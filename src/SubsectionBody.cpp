@@ -33,7 +33,6 @@ void SubsectionBody::update(ofxBox2d &box2d) {
   // Destroy all box2d elements if this body is outside the bounds.
   if (isOutside) {
     clean(box2d);
-    cout << "Cleaning subsection body" << endl;
    }
 }
 
