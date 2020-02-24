@@ -18,6 +18,7 @@ void ofApp::setup()
     showSoftBody = false;
     hideGui = true;
     showTexture = true;
+    showImageSubsections = false; 
   
     // Setup GUI.
     gui.setup();
@@ -39,7 +40,6 @@ void ofApp::setup()
     // Load a single image.
     img.load("bg.jpg");
     img.resize(ofGetWidth(), ofGetHeight());
-
     
     // Create subsection properties.
     createSubsectionProperties();
@@ -65,8 +65,12 @@ void ofApp::update()
 
 void ofApp::draw()
 {
-  ofPushMatrix();
-    ofPushMatrix;
+  if (showImageSubsections) {
+    for (auto i : imageSubsections) {
+      i.draw(ofPoint(subsectionWidth, subsectionHeight));
+    }
+  } else {
+    ofPushMatrix();
       // Draw the base image.
       img.draw(0, 0, ofGetWidth(), ofGetHeight());
       // Draw any subsections that have been torn apart as black rectangles.
@@ -91,10 +95,8 @@ void ofApp::draw()
           }
         ofPopStyle();
       }
-
     ofPopMatrix();
-  ofPopMatrix();
-  
+  }
   if (!hideGui) {
     gui.draw();
   }
@@ -180,6 +182,10 @@ void ofApp::keyPressed(int key) {
       case 't': {
         showTexture = !showTexture;
         break;
+      }
+      
+      case 'i': {
+        showImageSubsections = !showImageSubsections;
       }
       
       default: {

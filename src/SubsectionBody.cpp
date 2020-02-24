@@ -10,9 +10,6 @@ void SubsectionBody::setup(ofxBox2d &box2d, glm::vec2 meshOrigin, SoftBodyProper
   // Pick a random vertex and set it as static
   auto rIdx = ofRandom(this->vertices.size());
   this->vertices[rIdx]->body->SetType(b2_staticBody);
-  
-  
-//  addForce(); 
 }
 
 void SubsectionBody::update(ofxBox2d &box2d) {

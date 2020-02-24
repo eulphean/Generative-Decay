@@ -29,7 +29,8 @@ public:
     // Checks to keep track of updated box2d object.
     bool showSoftBody;
     bool hideGui;
-    bool showTexture; 
+    bool showTexture;
+    bool showImageSubsections; 
   
     // Subsections
     vector<Subsection> imageSubsections; // Pool of original subsections.

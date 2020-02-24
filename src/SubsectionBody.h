@@ -22,10 +22,19 @@ class Subsection {
     Subsection(glm::vec2 pos) {
       origin = pos;
       isTorn = false; // Keeps track if this subsection is torn
+      color = ofColor::fromHsb(ofRandom(255), ofRandom(255), ofRandom(255), 255);
+    }
+  
+    void draw(ofPoint subsectionDim) {
+      ofPushStyle();
+        ofSetColor(color);
+        ofDrawRectangle(origin.x, origin.y, subsectionDim.x, subsectionDim.y);
+      ofPopStyle(); 
     }
   
     glm::vec2 origin; // Subsection origin.
     bool isTorn;
+    ofColor color;
 };
 
 
