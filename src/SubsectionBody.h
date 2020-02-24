@@ -14,14 +14,18 @@ struct SoftBodyProperties {
 // Defines a class for each subsection.
 class Subsection {
   public:
+    Subsection() {
+    
+    }
+    
     // Constructor for subsection initiation.
-    Subsection(glm::vec2 pos, int idx = 0) {
+    Subsection(glm::vec2 pos) {
       origin = pos;
-      filterIdx = idx;
+      isTorn = false; // Keeps track if this subsection is torn
     }
   
     glm::vec2 origin; // Subsection origin.
-    int filterIdx; // Default filter idx.
+    bool isTorn;
 };
 
 
@@ -29,8 +33,9 @@ class Subsection {
 class SubsectionBody {
   public:
     void setup(ofxBox2d &box2d, glm::vec2 meshOrigin, SoftBodyProperties softBodyProperties);
-    void update();
+    void update(ofxBox2d &box2d);
     void draw(bool showSoftBody);
+    void clean(ofxBox2d &box2d);
   
     // Filter index to define which texture the subsection body should bind to.
     int filterIdx = 1;

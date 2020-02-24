@@ -5,6 +5,6 @@
 // computer program has a starting point, and this is it!
 int main()
 {
-    ofSetupOpenGL(800, 1000, OF_WINDOW);
+    ofSetupOpenGL(800, 1000, OF_FULLSCREEN);
     return ofRunApp(std::make_shared<ofApp>());
 }

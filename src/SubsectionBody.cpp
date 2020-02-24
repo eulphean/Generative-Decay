@@ -3,10 +3,10 @@
 void SubsectionBody::setup(ofxBox2d &box2d, glm::vec2 meshOrigin, SoftBodyProperties softBodyProperties) {
   setupMeshPlane(meshOrigin, softBodyProperties); // Create a mesh.
   createBox2DSprings(box2d, softBodyProperties); // Create box2d structure.
-  addForce();
+  addForce(); 
 }
 
-void SubsectionBody::update() {
+void SubsectionBody::update(ofxBox2d &box2d) {
   // Update each point in the mesh according to the
   // box2D vertex.
   auto meshPoints = mesh.getVertices();
@@ -30,33 +30,32 @@ void SubsectionBody::update() {
     isOutside = isOutside && !boundingRect.inside(v -> getPosition());
   }
   
-  if (isOutside == true) {
-    // Remove all the vertices.
-    ofRemove(vertices, [&](std::shared_ptr<ofxBox2dCircle> circle) {
-      return true;
-    });
-  }
+  // Destroy all box2d elements if this body is outside the bounds.
+  if (isOutside) {
+    clean(box2d);
+    cout << "Cleaning subsection body" << endl;
+   }
 }
 
 void SubsectionBody::draw(bool showSoftBody) {
   // Draw the soft bodies.
   if (showSoftBody) {
     ofPushStyle();
-      for(auto v: vertices) {
-        ofNoFill();
-        ofSetColor(ofColor::red);
-        v->draw();
-      }
-
       for(auto j: joints) {
         ofSetColor(ofColor::blue);
         j->draw();
       }
+      auto bodyRadius = this->vertices[0]->getRadius();
+      glPointSize(bodyRadius*2); 
+    
+      ofPushStyle();
+        ofSetColor(ofColor::red);
+        mesh.draw(OF_MESH_POINTS);
+      ofPopStyle();
     ofPopStyle();
+  } else {
+    mesh.draw();
   }
-  
-  // Draw the meshes.
-  mesh.draw();
 }
 
 // Use TRIANGLE mode to setup a mesh.
@@ -156,10 +155,26 @@ void SubsectionBody::createBox2DSprings(ofxBox2d &box2d, SoftBodyProperties soft
 }
 
 void SubsectionBody::addForce() {
-  int increment = 2;
-  for (int i = 0; i < vertices.size(); i+=increment) {
-    auto v = vertices[i];
-    auto pos = v -> getPosition();
-    v -> addForce(glm::vec2(ofRandom(-5, 5), ofRandom(-5, 5)), 1);
-  }
+  // Get a random vertex and apply a small force on it
+  auto randIdx = ofRandom(this->vertices.size());
+  auto v = this->vertices[randIdx];
+  v -> addForce(glm::vec2(ofRandom(-1, 1), ofRandom(-2, 2)), 0.5);
+}
+
+void SubsectionBody::clean(ofxBox2d &box2d){
+  // Remove joints.
+  ofRemove(joints, [&](std::shared_ptr<ofxBox2dJoint> j){
+    box2d.getWorld()->DestroyJoint(j->joint);
+    return true;
+  });
+  
+  // Remove vertices
+  ofRemove(vertices, [&](std::shared_ptr<ofxBox2dCircle> c){
+    c->destroy();
+    return true;
+  });
+
+  // Clear all.
+  joints.clear();
+  vertices.clear();
 }

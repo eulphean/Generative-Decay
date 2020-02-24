@@ -7,20 +7,17 @@ void ofApp::setup()
     ofEnableSmoothing();
     ofEnableAlphaBlending();
     ofSetVerticalSync(true);
-    ofSetFrameRate(100);
   
     // Setup box 2d.
     box2d.init();
-    box2d.setGravity(0, 10);
-    box2d.setFPS(200);
+    box2d.setGravity(0, 0);
     box2d.enableEvents();
     box2d.registerGrabbing(); // Enable grabbing the circles.
   
     // Default values.
-    newSubsection = false;
     showSoftBody = false;
     hideGui = true;
-    clear = false;
+    showTexture = true;
   
     // Setup GUI.
     gui.setup();
@@ -34,59 +31,21 @@ void ofApp::setup()
     gui.add(vertexFriction.setup("Vertex friction", 0.5, 0, 1));
     gui.add(jointFrequency.setup("Joint frequency", 4.f, 0.f, 20.f ));
     gui.add(jointDamping.setup("Joint damping", 1.f, 0.f, 5.f));
-    meshVertexRadius.addListener(this, &ofApp::meshRadiusUpdated);
     subsectionWidth.addListener(this, &ofApp::subsectionSizeUpdated);
     subsectionHeight.addListener(this, &ofApp::subsectionSizeUpdated);
   
     gui.loadFromFile("ReproductiveFeedback.xml");
   
-    // Custom walls for this program.
-    //createCustomWalls();
-    //box2d.createBounds();
-    //box2d.createGround(0, ofGetHeight(), ofGetWidth(), ofGetHeight());
-  
-    // Load kitties.
-    ofImage im;
-    im.load("1_of.png");
-    im.resize(ofGetWidth(), ofGetHeight());
-    kitties.push_back(im);
-    im.load("2_of.png");
-    im.resize(ofGetWidth(), ofGetHeight());
-    kitties.push_back(im);
-    im.load("3_of.png");
-    im.resize(ofGetWidth(), ofGetHeight());
-    kitties.push_back(im);
-    im.load("4_of.png");
-    im.resize(ofGetWidth(), ofGetHeight());
-    kitties.push_back(im);
-    im.load("5_of.png");
-    im.resize(ofGetWidth(), ofGetHeight());
-    kitties.push_back(im);
-    im.load("6_of.png");
-    im.resize(ofGetWidth(), ofGetHeight());
-    kitties.push_back(im);
-    im.load("7_of.png");
-    im.resize(ofGetWidth(), ofGetHeight());
-    kitties.push_back(im);
-    im.load("8_of.png");
-    im.resize(ofGetWidth(), ofGetHeight());
-    kitties.push_back(im);
+    // Load a single image.
+    img.load("bg.jpg");
+    img.resize(ofGetWidth(), ofGetHeight());
 
-  
-    // Collection of filters.
-    populateFilters();
     
     // Create subsection properties.
     createSubsectionProperties();
   
     // Create all the subsections of the image.
     createImageSubsections();
-
-    // Setup a mesh and box2d body for an image subsection.
-    createSubsectionBody();
-  
-    // Initial delay before starting the visuals.
-    ofSleepMillis(5000);
 }
 
 void ofApp::update()
@@ -96,142 +55,51 @@ void ofApp::update()
   
     // Update box2d
     box2d.update();
-
-    for (int i = 0; i < softBodies.size(); i++) {
-      softBodies[i].update();
-      if (softBodies[i].isOutside) { // Erase this element if it's outside the bounds.
-        softBodies.erase(softBodies.begin() + i);
-      }
-    }
   
-    unsigned long elapsedTime = ofGetElapsedTimeMillis() - trackTime;
-    if (elapsedTime > 4 * 1000 && softBodies.size() <= 4) { // Every 5 seconds create a new one. No more than 3 soft bodies on the screen.
-      newSubsection = true;
-      trackTime = ofGetElapsedTimeMillis(); // Reset time.
-    }
+    // Erase this element if it's outside the box2d bounds.
+    ofRemove(subsectionBodies, [&](SubsectionBody &b) {
+      b.update(box2d);
+      return b.isOutside;
+    });
 }
 
 void ofApp::draw()
 {
-  std::cout<<"Frame rate: " << ofGetFrameRate() << endl;
-  
   ofPushMatrix();
     ofPushMatrix();
-
-      ofPushStyle();
-        kitties[0].draw(0, 0, kitties[0].getWidth(), kitties[0].getHeight());
-      ofPopStyle();
-
-      // Torn subsections.
-      if (tornSubsections.size() > 0) {
-        for (auto s: tornSubsections) {
+  
+      // Draw the base image.
+      img.draw(0, 0, ofGetWidth(), ofGetHeight());
+  
+      // Draw any subsections that have been torn apart as black rectangles.
+      for (auto &sub : imageSubsections) {
+        if (sub.isTorn) {
           ofPushStyle();
-            ofTexture tex = kitties[s.filterIdx].getTexture();
-            tex.drawSubsection(s.origin.x, s.origin.y, subsectionWidth, subsectionHeight, s.origin.x, s.origin.y);
+            ofSetColor(ofColor::black);
+            ofDrawRectangle(sub.origin.x, sub.origin.y, subsectionWidth, subsectionHeight);
           ofPopStyle();
         }
       }
 
-      // Soft body.
-      if (softBodies.size() > 0) {
-        for (auto b: softBodies) {
-          ofPushStyle();
-            kitties[b.filterIdx].getTexture().bind();
+      // Draw all subsection bodies that are torn away.
+      for (auto b: subsectionBodies) {
+        ofPushStyle();
+          if (showTexture) {
+            img.getTexture().bind();
               b.draw(showSoftBody);
-            kitties[b.filterIdx].getTexture().unbind();
-          ofPopStyle();
-        }
+            img.getTexture().unbind();
+          } else {
+            b.draw(showSoftBody);
+          }
+        ofPopStyle();
       }
 
-      // Recreate the mesh.
-      if (newSubsection) {
-        // Recreate the mesh and box2DSprings
-        createSubsectionBody();
-        newSubsection = false;
-      }
-
-      // Clear everything, recreate subsections, recreate soft bodies.
-      if (clear) {
-        //createImageSubsections();
-        softBodies.clear();
-        tornSubsections.clear();
-        tornSubsectionsAtFilter.clear();
-        softBodiesAtFilter.clear();
-        clear = false;
-      }
     ofPopMatrix();
   ofPopMatrix();
   
   if (!hideGui) {
     gui.draw();
   }
-}
-
-void ofApp::keyPressed(int key) {
-    switch (key) {
-      case 'n': {
-        newSubsection = !newSubsection;
-        break;
-      }
-      
-      case 's': {
-        showSoftBody = !showSoftBody;
-        break;
-      }
-      
-      case 'h': {
-        hideGui = !hideGui;
-        break;
-      }
-      
-      case 'c': {
-        clear = !clear;
-        break;
-      }
-      
-      default: {
-        break;
-      }
-    }
-}
-
-void ofApp::createCustomWalls() {
-  // Get a handle to the ground.
-  auto &ground = box2d.ground;
-  
-  b2EdgeShape shape;
-  
-  ofRectangle rec(0/OFX_BOX2D_SCALE, 0/OFX_BOX2D_SCALE, ofGetWidth()/OFX_BOX2D_SCALE, ofGetHeight()/OFX_BOX2D_SCALE);
-  
-  // Left wall
-  shape.Set(b2Vec2(rec.x, rec.y), b2Vec2(rec.x, rec.y + rec.height));
-  ground->CreateFixture(&shape, 0.0f);
-  
-  // Right wall.
-  shape.Set(b2Vec2(rec.x + rec.width, rec.y), b2Vec2(rec.x + rec.width, rec.y));
-  ground->CreateFixture(&shape, 0.0f);
-}
-
-void ofApp::populateFilters() {
-//  filters.push_back(new SketchFilter(cryptoPunks.getWidth(), cryptoPunks.getHeight()));
-//
-//  filters.push_back(new PosterizeFilter(5));
-//
-//  // Displacement
-//  filters.push_back(new DisplacementFilter("img/glass/3.jpg", cryptoPunks.getWidth(), cryptoPunks.getHeight(), 30.0));
-//
-//
-//  // Lookup
-//  filters.push_back(new LookupFilter(cryptoPunks.getWidth(), cryptoPunks.getHeight(), "img/lookup_miss_etikate.png"));
-//
-//   // Perlin Pixellation
-//  filters.push_back(new PerlinPixellationFilter(cryptoPunks.getWidth(), cryptoPunks.getHeight()));
-//  
-//  
-//  filters.push_back(new ZoomBlurFilter());
-//
-//
-//  filters.push_back(new LaplacianFilter(cryptoPunks.getWidth(), cryptoPunks.getHeight(), ofVec2f(1, 1)));
 }
 
 // Recreate image subsections.
@@ -254,55 +122,72 @@ void ofApp::createImageSubsections() {
   imageSubsections.clear();
   
   // Build a collection of image subsections.
-  for (int x = meshVertexRadius; x < ofGetWidth() - meshVertexRadius; x+=subsectionWidth) {
-    for (int y = meshVertexRadius; y < ofGetHeight() - meshVertexRadius; y+=subsectionHeight) {
-      Subsection s = Subsection(glm::vec2(x, y)); // Default subsection.
+  for (int x = 0; x < ofGetWidth(); x+=subsectionWidth) {
+    for (int y = 0; y < ofGetHeight(); y+=subsectionHeight) {
+      Subsection s = Subsection(glm::vec2(x, y)); // Store the starting point of each subsection.
       imageSubsections.push_back(s);
     }
   }
 }
 
-void ofApp::meshRadiusUpdated(float &radius) {
-  // Update bounding box.
-  box2d.createBounds(ofRectangle(0, 0, ofGetWidth() + radius, ofGetHeight() + radius));
+void ofApp::createSubsectionBody() {
+  int idx = ofRandom(imageSubsections.size());
+  
+  // Keep looking for a random subsection.
+  while (ofContains(tornIndices, idx)) {
+    idx = ofRandom(imageSubsections.size());
+  }
+  
+  // Save the index and create a subsection.
+  tornIndices.push_back(idx);
+  Subsection &s = imageSubsections[idx];
+  s.isTorn = true;
+  
+  // Create a subsection body to tear.
+  SubsectionBody body;
+  body.setup(box2d, s.origin, softBodyProperties);
+  subsectionBodies.push_back(body);
 }
 
-void ofApp::createSubsectionBody() {
-  SubsectionBody body;
-  Subsection &s = imageSubsections[ofRandom(imageSubsections.size())];
-  
-  // Setup the body. 
-  body.setup(box2d, s.origin, softBodyProperties);
-  
-  // NOTE: Make the sure the filter index is correctly transferred from
-  // subsection to subsection body.
-  body.filterIdx = s.filterIdx; // Old filter index that this soft body should bind to.
-  s.filterIdx = (s.filterIdx + 1) % kitties.size(); // Increment the filter index as this has been torn now.
-  
-  // Push this new subsection body to our collection.
-  softBodies.push_back(body);
-  
-  // If s.origin is in the subsection, then just edit that subsection.
-  bool found = false;
-  for (auto &tornSub: tornSubsections) {
-    // Check if these origins are equal.
-    if (tornSub.origin.x == s.origin.x && tornSub.origin.y == s.origin.y) {
-      // Update filter index in the tornSub to the new subsection.
-      tornSub.filterIdx = s.filterIdx;
-      std::cout << "Updating an already existing torn subsection: " << tornSubsections.size() << ", " << tornSub.filterIdx <<  endl;
-      found = true;
-      break;
+void ofApp::clear() {
+  // Clear all bodies from space.
+  ofRemove(subsectionBodies, [&](SubsectionBody &b) {
+    b.clean(box2d);
+    return true;
+  });
+}
+
+void ofApp::keyPressed(int key) {
+    switch (key) {
+      case 'n': {
+        createSubsectionBody();
+        break;
+      }
+      
+      case 's': {
+        showSoftBody = !showSoftBody;
+        break;
+      }
+      
+      case 'h': {
+        hideGui = !hideGui;
+        break;
+      }
+      
+      case 'c': {
+        clear(); 
+        break;
+      }
+      
+      case 't': {
+        showTexture = !showTexture;
+        break;
+      }
+      
+      default: {
+        break;
+      }
     }
-  }
-  
-  if (!found) {
-    // Create new torn subsection since it hasn't been torn yet.
-    Subsection tornSub = Subsection(s.origin, s.filterIdx);
-    tornSubsections.push_back(tornSub);
-    std::cout << "No old torn subsection found. Adding a new one: " << tornSubsections.size() << endl;
-  }
-  
-  trackTime = ofGetElapsedTimeMillis();
 }
 
 void ofApp::exit() {
