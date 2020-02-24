@@ -66,11 +66,9 @@ void ofApp::update()
 void ofApp::draw()
 {
   ofPushMatrix();
-    ofPushMatrix();
-  
+    ofPushMatrix;
       // Draw the base image.
       img.draw(0, 0, ofGetWidth(), ofGetHeight());
-  
       // Draw any subsections that have been torn apart as black rectangles.
       for (auto &sub : imageSubsections) {
         if (sub.isTorn) {

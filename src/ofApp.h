@@ -19,14 +19,11 @@ public:
     void clear(); 
     void createSubsectionBody();
     void createSubsectionProperties();
-    void populateFilters();
-    void createCustomWalls();
-  
+    
     // Grabber stuff.
     ofVideoGrabber grabber;
   
     // Physics engine.
-    vector<ofMesh> meshes;
     ofxBox2d box2d;
   
     // Checks to keep track of updated box2d object.
