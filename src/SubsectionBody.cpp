@@ -4,6 +4,7 @@ void SubsectionBody::setup(ofxBox2d &box2d, glm::vec2 meshOrigin, SoftBodyProper
   setupMeshPlane(meshOrigin, softBodyProperties); // Create a mesh.
   createBox2DSprings(box2d, softBodyProperties); // Create box2d structure.
   
+  // TODO: Need to resolve this logic. Doesn't make any sense yet. 
   // Set the 0th vertex as static
   this->vertices[0]->body->SetType(b2_staticBody);
   
