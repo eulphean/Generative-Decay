@@ -1,19 +1,20 @@
-#include "SubsectionBody.h"
+#include "SoftBody.h"
 
-void SubsectionBody::setup(ofxBox2d &box2d, glm::vec2 meshOrigin, SoftBodyProperties softBodyProperties) {
+void SoftBody::setup(ofxBox2d &box2d, glm::vec2 meshOrigin, SoftBodyProperties softBodyProperties) {
   setupMeshPlane(meshOrigin, softBodyProperties); // Create a mesh.
   createBox2DSprings(box2d, softBodyProperties); // Create box2d structure.
+  addForce(); 
   
-  // TODO: Need to resolve this logic. Doesn't make any sense yet. 
-  // Set the 0th vertex as static
-  this->vertices[0]->body->SetType(b2_staticBody);
-  
-  // Pick a random vertex and set it as static
-  auto rIdx = ofRandom(this->vertices.size());
-  this->vertices[rIdx]->body->SetType(b2_staticBody);
+//  // TODO: Need to resolve this logic. Doesn't make any sense yet.
+//  // Set the 0th vertex as static
+//  this->vertices[0]->body->SetType(b2_staticBody);
+//
+//  // Pick a random vertex and set it as static
+//  auto rIdx = ofRandom(this->vertices.size());
+//  this->vertices[rIdx]->body->SetType(b2_staticBody);
 }
 
-void SubsectionBody::update(ofxBox2d &box2d) {
+void SoftBody::update(ofxBox2d &box2d) {
   // Update each point in the mesh according to the
   // box2D vertex.
   auto meshPoints = mesh.getVertices();
@@ -40,32 +41,35 @@ void SubsectionBody::update(ofxBox2d &box2d) {
   // Destroy all box2d elements if this body is outside the bounds.
   if (isOutside) {
     clean(box2d);
-   }
+	}
 }
 
-void SubsectionBody::draw(bool showSoftBody) {
-  // Draw the soft bodies.
-  if (showSoftBody) {
-    ofPushStyle();
-      for(auto j: joints) {
-        ofSetColor(ofColor::blue);
-        j->draw();
-      }
-      auto bodyRadius = this->vertices[0]->getRadius();
-      glPointSize(bodyRadius*2); 
-    
-      ofPushStyle();
-        ofSetColor(ofColor::red);
-        mesh.draw(OF_MESH_POINTS);
-      ofPopStyle();
-    ofPopStyle();
-  } else {
-    mesh.draw();
-  }
+void SoftBody::draw(bool debug) {
+	// Only draw something if something exists here.
+	if (vertices.size() > 0) {
+		// Draw the soft bodies.
+		if (debug) {
+			ofPushStyle();
+				for(auto j: joints) {
+					ofSetColor(ofColor::blue);
+					j->draw();
+				}
+				auto bodyRadius = this->vertices[0]->getRadius();
+				glPointSize(bodyRadius*2);
+			
+				ofPushStyle();
+					ofSetColor(ofColor::red);
+					mesh.draw(OF_MESH_POINTS);
+				ofPopStyle();
+			ofPopStyle();
+		} else {
+			mesh.draw();
+		}
+	}
 }
 
 // Use TRIANGLE mode to setup a mesh.
-void SubsectionBody::setupMeshPlane(glm::vec2 meshOrigin, SoftBodyProperties softBodyProperties) {
+void SoftBody::setupMeshPlane(glm::vec2 meshOrigin, SoftBodyProperties softBodyProperties) {
   mesh.clear();
   mesh.setMode(OF_PRIMITIVE_TRIANGLES);
   
@@ -116,7 +120,7 @@ void SubsectionBody::setupMeshPlane(glm::vec2 meshOrigin, SoftBodyProperties sof
   }
 }
 
-void SubsectionBody::createBox2DSprings(ofxBox2d &box2d, SoftBodyProperties softBodyProperties) {
+void SoftBody::createBox2DSprings(ofxBox2d &box2d, SoftBodyProperties softBodyProperties) {
   auto meshVertices = mesh.getVertices();
   
   vertices.clear();
@@ -160,14 +164,14 @@ void SubsectionBody::createBox2DSprings(ofxBox2d &box2d, SoftBodyProperties soft
   }
 }
 
-void SubsectionBody::addForce() {
+void SoftBody::addForce() {
   // Get a random vertex and apply a small force on it
   auto randIdx = ofRandom(this->vertices.size());
   auto v = this->vertices[randIdx];
   v -> addForce(glm::vec2(ofRandom(-1, 1), ofRandom(-2, 2)), 0.5);
 }
 
-void SubsectionBody::clean(ofxBox2d &box2d){
+void SoftBody::clean(ofxBox2d &box2d){
   // Remove joints.
   ofRemove(joints, [&](std::shared_ptr<ofxBox2dJoint> j){
     box2d.getWorld()->DestroyJoint(j->joint);

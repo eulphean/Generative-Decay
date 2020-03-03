@@ -1,8 +1,9 @@
 #pragma once
 #include "ofMain.h"
 #include "ofxBox2d.h"
-#include "SubsectionBody.h"
 #include "ofxGui.h"
+#include "Window.h"
+#include "SoftBody.h"
 
 class ofApp: public ofBaseApp
 {
@@ -14,28 +15,22 @@ public:
     void exit() override;
   
     // Mesh helper methods.
-    void createImageSubsections();
-    void subsectionSizeUpdated(int &num); // Recreate image subsections with new width or height.
-    void clear(); 
-    void createSubsectionBody();
-    void createSubsectionProperties();
+    void createWindows();
+    void windowSizeUpdated(int &num); // Recreate image subsections with new width or height.
+		void createSoftBody();
     
-    // Grabber stuff.
-    ofVideoGrabber grabber;
+    void clear();
+    void updateSoftBodyProps();
   
-    // Physics engine.
+    // Interactive flags.
+    bool hideGui = true;
+    bool debug = false;
+	
+		// Physics engine.
     ofxBox2d box2d;
   
-    // Checks to keep track of updated box2d object.
-    bool showSoftBody;
-    bool hideGui;
-    bool showTexture;
-    bool showImageSubsections; 
-  
-    // Subsections
-    vector<Subsection> imageSubsections; // Pool of original subsections.
-    vector<SubsectionBody> subsectionBodies; // Mesh + Box2D body removed.
-    vector<int> tornIndices; 
+    // Each is a window. 
+    vector<Window> windows; // Pool of original subsections.
   
     // App GUI.
     ofxPanel gui;
@@ -54,10 +49,11 @@ public:
   
     // Soft body UI properties. 
     SoftBodyProperties softBodyProperties;
-  
-    // Background image.
-    ofImage img;
-  
-    int numSubsections = 0; 
+	
+		// TODO: Don't use this for too long. 
+		// Come up with a better algorithm honestly.
+		vector<int> tornWindows;
+	
+		ofImage img; 
 };
 
