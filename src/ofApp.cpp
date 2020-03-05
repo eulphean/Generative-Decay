@@ -52,19 +52,19 @@ void ofApp::update()
 
 void ofApp::draw()
 {
-	img.draw(0, 0, ofGetWidth(), ofGetHeight()); 
+	img.draw(0, 0, ofGetWidth(), ofGetHeight());
 	
 	// Draw windows.
 	for (auto w : windows) {
 		w.drawWindow(debug, ofPoint(subsectionWidth, subsectionHeight));
-		w.drawBody(debug, img);
 	}
 	
-	// Draw torn bodies.
-	//img.getTexture().bind();
-//	for (auto w : windows) {
-//	}
-	//img.getTexture().unbind();
+	// Bind the image.
+	img.bind();
+		for (auto w : windows) {
+			w.drawBody(debug);
+		}
+	img.unbind();
 
   if (!hideGui) {
     gui.draw();

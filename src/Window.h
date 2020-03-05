@@ -10,7 +10,7 @@ class Window {
     void setup(glm::vec2 pos);
     void update(ofxBox2d &box2d);
     void drawWindow(bool debug, ofPoint windowProp);
-    void drawBody(bool debug, ofImage img);
+    void drawBody(bool debug);
 	
     void setupSoftBody(ofxBox2d &box2d, SoftBodyProperties softBodyProps);
     void clean(ofxBox2d &box2d);

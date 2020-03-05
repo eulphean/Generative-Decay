@@ -34,14 +34,12 @@ void Window::drawWindow(bool debug, ofPoint windowProp) {
 	}
 }
 
-void Window::drawBody(bool debug, ofImage img) {
+void Window::drawBody(bool debug) {
 	if (debug) {
 		// Don't bind texture
 		body.draw(true);
 	} else {
-		//img.getTexture().bind();
-			body.draw(false);
-		//img.getTexture().unbind();
+		body.draw(false);
 	}
 }
 
