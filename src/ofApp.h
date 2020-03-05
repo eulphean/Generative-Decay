@@ -4,7 +4,9 @@
 #include "ofxGui.h"
 #include "Window.h"
 #include "SoftBody.h"
+#include "VideoBank.h"
 
+// Public Data Structure 
 class ofApp: public ofBaseApp
 {
 public:
@@ -50,10 +52,8 @@ public:
     // Soft body UI properties. 
     SoftBodyProperties softBodyProperties;
 	
-		// TODO: Don't use this for too long. 
-		// Come up with a better algorithm honestly.
-		vector<int> tornWindows;
+		// Background Image (TODO: Will move away soon)
+		ofImage img;
 	
-		ofImage img; 
+		std::vector<int> tornWindows;
 };
-

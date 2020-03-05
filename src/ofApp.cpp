@@ -33,6 +33,9 @@ void ofApp::setup()
     // Create all the subsections of the image.
     createWindows();
 	
+		// Load all videos as startup. 
+    VideoBank::instance().loadVideos();
+	
     // Load all videos or images or whatever is used to create the narrative.
     img.load("bg.jpg"); 
 }
@@ -60,11 +63,9 @@ void ofApp::draw()
 	}
 	
 	// Bind the image.
-	img.bind();
-		for (auto w : windows) {
-			w.drawBody(debug);
-		}
-	img.unbind();
+	for (auto w : windows) {
+		w.drawBody(debug);
+	}
 
   if (!hideGui) {
     gui.draw();
